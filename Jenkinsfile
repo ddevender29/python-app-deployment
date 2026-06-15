@@ -8,11 +8,11 @@ pipeline {
 
     stages {
 
-        // stage('Clone Code') {
-        //     steps {
-        //         git 'https://your-repo-url.git'
-        //     }
-        // }
+        stage('Clone Code') {
+            steps {
+                git 'https://your-repo-url.git'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
@@ -44,4 +44,3 @@ pipeline {
         }
     }
 }
-``
