@@ -33,9 +33,14 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        sh """
-        kubectl set image deployment/python-app python-app=${DOCKER_IMAGE}:${TAG}
-        """
+        container('kubectl') {   // ✅ use kubectl container
+          withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
+            sh """
+            export KUBECONFIG=\$KUBECONFIG
+            kubectl set image deployment/python-app python-app=${DOCKER_IMAGE}:${TAG}
+            """
+          }
+        }
       }
     }
 
