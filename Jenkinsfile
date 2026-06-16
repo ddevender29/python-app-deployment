@@ -1,58 +1,43 @@
 pipeline {
-    agent any
+  agent {
+    kubernetes {
+      yamlFile 'kaniko-pod.yaml'
+    }
+  }
 
-    environment {
-        DOCKER_IMAGE = "devender29/python-app"
-        TAG = "latest"
+  environment {
+    DOCKER_IMAGE = "devender29/python-app"
+    TAG = "${BUILD_NUMBER}"
+  }
+
+  stages {
+
+    stage('Checkout Code') {
+      steps {
+        checkout scm
+      }
     }
 
-    stages {
-
-        stage('Check Docker') {
-            steps {
-                sh 'which docker'
-                sh 'docker --version'
-            }
+    stage('Build & Push Image') {
+      steps {
+        container('kaniko') {
+          sh """
+          /kaniko/executor \
+            --dockerfile=Dockerfile \
+            --context=$(pwd) \
+            --destination=${DOCKER_IMAGE}:${TAG}
+          """
         }
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${TAG} ."
-            }
-        }
-
-        stage('Login to Docker Hub') {
-            steps {
-                withCredentials([
-                    usernamePassword(
-                        credentialsId: 'docker-pat',
-                        usernameVariable: 'USERNAME',
-                        passwordVariable: 'PASSWORD'
-                    )
-                ]) {
-                    sh "echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin"
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                sh "docker push ${DOCKER_IMAGE}:${TAG}"
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh """
-                kubectl apply -f deployment.yaml
-                kubectl apply -f service.yaml
-                """
-            }
-        }
+      }
     }
+
+    stage('Deploy to Kubernetes') {
+      steps {
+        sh """
+        kubectl set image deployment/python-app python-app=${DOCKER_IMAGE}:${TAG}
+        """
+      }
+    }
+
+  }
 }
