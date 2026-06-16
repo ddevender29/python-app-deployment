@@ -8,9 +8,17 @@ pipeline {
 
     stages {
 
+        stage('Checkout Code') {
+            steps {
+                git url: 'https://github.com/ddevender29/python-app-deployment.git', branch: 'main'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:$TAG .'
+                sh """
+                docker build -t ${DOCKER_IMAGE}:${TAG} .
+                """
             }
         }
 
@@ -23,22 +31,29 @@ pipeline {
                         passwordVariable: 'PASSWORD'
                     )
                 ]) {
-                    sh 'echo $PASSWORD | docker login -u $USERNAME --password-stdin'
+                    sh """
+                    echo ${PASSWORD} | docker login -u ${USERNAME} --password-stdin
+                    """
                 }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push $DOCKER_IMAGE:$TAG'
+                sh """
+                docker push ${DOCKER_IMAGE}:${TAG}
+                """
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f deployment.yaml'
-                sh 'kubectl apply -f service.yaml'
+                sh """
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
+                """
             }
         }
     }
 }
+``
