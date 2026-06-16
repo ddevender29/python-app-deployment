@@ -24,7 +24,7 @@ pipeline {
           sh """
           /kaniko/executor \
             --dockerfile=Dockerfile \
-            --context=$(pwd) \
+            --context=\$(pwd) \
             --destination=${DOCKER_IMAGE}:${TAG}
           """
         }
