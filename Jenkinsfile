@@ -33,7 +33,7 @@ pipeline {
 
     stage('Deploy to Kubernetes') {
       steps {
-        container('kubectl') {   // ✅ use kubectl container
+        container('kubectl') {
           withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
             sh """
             export KUBECONFIG=\$KUBECONFIG
