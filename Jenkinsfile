@@ -34,10 +34,11 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         container('kubectl') {
-          withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
+          withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
             sh """
             export KUBECONFIG=\$KUBECONFIG
-            kubectl set image deployment/python-app python-app=${DOCKER_IMAGE}:${TAG}
+            kubectl get nodes
+            kubectl set image deployment/python-app python-app=${DOCKER_IMAGE}:${TAG} -n jenkins
             """
           }
         }
