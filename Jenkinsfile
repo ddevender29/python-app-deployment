@@ -43,19 +43,27 @@
 
 
 pipeline {
-  agent {
-    kubernetes {
-      inheritFrom 'default'
-    }
+  agent any
+
+  environment {
+    KUBECONFIG = credentials('kubeconfig')
   }
 
   stages {
-    stage('Test') {
+    stage('Check Cluster') {
       steps {
-        container('docker') {
-          sh 'docker ps'
-        }
+        sh 'kubectl get pods'
+      }
+    }
+
+    stage('Use DinD Pod') {
+      steps {
+        sh '''
+        kubectl exec app-with-dind -c app -- sh -c "docker ps"
+        kubectl exec app-with-dind -c app -- sh -c "docker run hello-world"
+        '''
       }
     }
   }
 }
+``
