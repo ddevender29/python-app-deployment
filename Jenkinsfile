@@ -45,18 +45,15 @@
 pipeline {
   agent {
     kubernetes {
-      label 'dind-agent'
+      inheritFrom 'default'
     }
   }
 
   stages {
-    stage('Test Docker') {
+    stage('Test') {
       steps {
         container('docker') {
-          sh '''
-            docker version
-            docker run hello-world
-          '''
+          sh 'docker ps'
         }
       }
     }
